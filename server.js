@@ -4,7 +4,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // 全體一致的進場密碼 (你可以自行修改)
-const ROOM_PASSWORD = "1234password"; 
+const ROOM_PASSWORD = "gaga"; 
 
 app.use(express.json());
 app.use(express.static('public'));
