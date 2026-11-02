@@ -45,6 +45,12 @@ app.post('/api/login', (req, res) => {
     }
 });
 
+// 1.5 登出 API (新增)
+app.post('/api/logout', (req, res) => {
+    // 因為你是共用密碼登入，後端主要是回傳成功，主要動作在前端清除 localStorage/sessionStorage
+    res.json({ success: true, message: '已成功登出' });
+});
+
 // 2. 取得所有帳目 API
 app.get('/api/accounts', async (req, res) => {
     try {
