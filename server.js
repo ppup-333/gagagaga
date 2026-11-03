@@ -36,6 +36,24 @@ let memoryAccounts = [
 ];
 let memoryIdCounter = 2;
 
+function cleanMemoryData() {
+    // 1. 清除含有 hi 或 測試 的資料
+    memoryAccounts = memoryAccounts.filter(item => {
+        const str = `${item.user} ${item.fromUser || ''} ${item.toUser || ''} ${item.note || ''}`;
+        return !/hi|測試/i.test(str);
+    });
+
+    // 2. 把 黃四郎 改成 雷 要給 凱
+    memoryAccounts.forEach(item => {
+        const str = `${item.user} ${item.fromUser || ''} ${item.toUser || ''} ${item.note || ''}`;
+        if (/黃四郎/.test(str)) {
+            item.fromUser = '雷';
+            item.toUser = '凱';
+            item.user = '雷';
+        }
+    });
+}
+
 if (hasDb) {
     pool = new Pool({
         connectionString: process.env.DATABASE_URL,
@@ -43,10 +61,11 @@ if (hasDb) {
     });
 }
 
-// 初始化資料庫表格（若不存在則自動建立，並確保包含 room_id, from_user, to_user 欄位）
+// 初始化資料庫表格（若不存在則自動建立，並確保包含欄位以及執行資料清理）
 async function initDB() {
     if (!pool) {
         console.log("未檢測到 DATABASE_URL，本地運行於記憶體模式。");
+        cleanMemoryData();
         return;
     }
     try {
@@ -67,8 +86,36 @@ async function initDB() {
             ALTER TABLE accounts ADD COLUMN IF NOT EXISTS to_user TEXT;
         `);
         console.log("PostgreSQL 資料庫與表格檢查/建立成功！");
+
+        // 1. 清除目前含有 "hi" 或 "測試" 的資料
+        const deleteRes = await pool.query(`
+            DELETE FROM accounts 
+            WHERE note ILIKE '%hi%' 
+               OR note ILIKE '%測試%' 
+               OR user_name ILIKE '%hi%' 
+               OR user_name ILIKE '%測試%';
+        `);
+        if (deleteRes.rowCount > 0) {
+            console.log(`[資料維護] 已清除 ${deleteRes.rowCount} 筆含有 "hi" 或 "測試" 的資料。`);
+        }
+
+        // 2. 將 "黃四郎" 的資料改成 "雷" 要給 "凱"
+        const updateRes = await pool.query(`
+            UPDATE accounts 
+            SET from_user = '雷', 
+                to_user = '凱',
+                user_name = '雷'
+            WHERE user_name ILIKE '%黃四郎%' 
+               OR from_user ILIKE '%黃四郎%' 
+               OR to_user ILIKE '%黃四郎%' 
+               OR note ILIKE '%黃四郎%';
+        `);
+        if (updateRes.rowCount > 0) {
+            console.log(`[資料維護] 已將 ${updateRes.rowCount} 筆 '黃四郎' 的資料修正為 '雷' 要給 '凱'。`);
+        }
+
     } catch (err) {
-        console.error("資料庫初始化失敗：", err);
+        console.error("資料庫初始化或維護失敗：", err);
     }
 }
 initDB();
