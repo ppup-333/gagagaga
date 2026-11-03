@@ -342,7 +342,7 @@
         </div>
         <div class="form-group">
             <label for="room-password">3. 空間密碼</label>
-            <input type="password" id="room-password" placeholder="請輸入該空間密碼 (管理員請輸 iamadmin)" onkeydown="if(event.key==='Enter') login()">
+            <input type="password" id="room-password" placeholder="請輸入該空間密碼" onkeydown="if(event.key==='Enter') login()">
         </div>
         <button class="btn" onclick="login()">進入記帳本</button>
     </div>
@@ -363,27 +363,28 @@
 
         <!-- 管理員模式提示橫幅 -->
         <div id="admin-banner" class="admin-banner hidden">
-            <span>👑 <strong>管理員模式已啟用</strong>：您可在此空間管理並直接刪除任何帳目紀錄。</span>
+            <span>👑 <strong>管理員模式已啟用</strong>：您可在此空間檢視帳目列表並直接進行刪除操作。</span>
         </div>
         
         <!-- 句子式記帳表單（項目換行自首字起顯示） -->
-        <div class="sentence-card">
-            <div class="sentence-inline-row">
-                <select id="from-user-select" class="sentence-select" title="付款人"></select>
-                <span class="sentence-connect">要給</span>
-                <select id="to-user-select" class="sentence-select" title="收款人"></select>
-                <input type="number" id="amount" class="sentence-amount" placeholder="金額" min="1">
-                <span class="sentence-connect">元</span>
+        <div id="add-account-section">
+            <div class="sentence-card">
+                <div class="sentence-inline-row">
+                    <select id="from-user-select" class="sentence-select" title="付款人"></select>
+                    <span class="sentence-connect">要給</span>
+                    <select id="to-user-select" class="sentence-select" title="收款人"></select>
+                    <input type="number" id="amount" class="sentence-amount" placeholder="金額" min="1">
+                    <span class="sentence-connect">元</span>
+                </div>
+                
+                <div class="sentence-note-row">
+                    <label for="note" class="sentence-item-label">項目是（必填）：</label>
+                    <textarea id="note" placeholder="請輸入項目說明（必填，例如：代買午餐、宵夜、高鐵票...）"></textarea>
+                </div>
             </div>
-            
-            <div class="sentence-note-row">
-                <label for="note" class="sentence-item-label">項目是（必填）：</label>
-                <textarea id="note" placeholder="請輸入項目說明（必填，例如：代買午餐、宵夜、高鐵票...）"></textarea>
-            </div>
+            <button class="btn" onclick="addAccount()">新增一筆帳</button>
+            <hr style="margin: 24px 0 16px 0; border: 0; border-top: 1px solid #edf2f7;">
         </div>
-        <button class="btn" onclick="addAccount()">新增一筆帳</button>
-
-        <hr style="margin: 24px 0 16px 0; border: 0; border-top: 1px solid #edf2f7;">
         
         <h3 style="margin-bottom: 14px; color: #2d3748; font-size: 17px;">帳目列表</h3>
         <div id="accounts-list">載入中...</div>
@@ -536,12 +537,16 @@
 
         const adminBadge = document.getElementById('admin-badge-indicator');
         const adminBanner = document.getElementById('admin-banner');
+        const addSection = document.getElementById('add-account-section');
+
         if (isAdmin) {
             adminBadge.classList.remove('hidden');
             adminBanner.classList.remove('hidden');
+            addSection.classList.add('hidden'); // 管理員隱藏新增帳目表單
         } else {
             adminBadge.classList.add('hidden');
             adminBanner.classList.add('hidden');
+            addSection.classList.remove('hidden');
         }
 
         updateFormMemberSelectors();
