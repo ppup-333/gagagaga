@@ -5,33 +5,200 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>嘎仔記帳本</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        h2 { text-align: center; color: #2c3e50; margin-top: 0; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+            background: #f0f3f8; 
+            margin: 0; 
+            padding: 20px 12px; 
+            color: #2d3748; 
+        }
+        .container { 
+            max-width: 620px; 
+            margin: 0 auto; 
+            background: #ffffff; 
+            padding: 24px 20px; 
+            border-radius: 14px; 
+            box-shadow: 0 4px 18px rgba(0,0,0,0.06); 
+        }
+        h2 { text-align: center; color: #2b6cb0; margin-top: 0; margin-bottom: 20px; }
         .hidden { display: none !important; }
+        
         .form-group { margin-bottom: 16px; }
-        label { display: block; margin-bottom: 6px; font-weight: bold; color: #34495e; font-size: 14px; }
-        input[type="text"], input[type="number"], input[type="password"], select { 
+        label { display: block; margin-bottom: 6px; font-weight: 600; color: #4a5568; font-size: 14px; }
+        
+        input[type="text"], input[type="number"], input[type="password"], select, textarea { 
             width: 100%; 
             padding: 10px 12px; 
-            border: 1px solid #ddd; 
-            border-radius: 6px; 
+            border: 1.5px solid #e2e8f0; 
+            border-radius: 8px; 
             box-sizing: border-box; 
             font-size: 15px;
             background-color: #fff;
+            color: #2d3748;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
         select { cursor: pointer; }
-        select:focus, input:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 2px rgba(52,152,219,0.2); }
-        button { background: #3498db; color: white; border: none; padding: 11px 15px; border-radius: 6px; cursor: pointer; width: 100%; font-size: 16px; font-weight: 600; transition: background 0.2s; }
-        button:hover { background: #2980b9; }
-        .item-card { background: #fafafa; border: 1px solid #eee; padding: 12px 14px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .item-card.settled { background: #e8f8f5; border-color: #a3e4d7; text-decoration: line-through; color: #7f8c8d; }
-        .meta { font-size: 12px; color: #7f8c8d; margin-top: 4px; }
-        .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .header-flex h2 { margin: 0; text-align: left; font-size: 22px; }
-        .logout-btn { background: #e74c3c; width: auto; padding: 6px 14px; font-size: 13px; font-weight: normal; }
-        .logout-btn:hover { background: #c0392b; }
-        .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; background: #eaf2f8; color: #2980b9; font-size: 13px; font-weight: bold; }
+        textarea { 
+            resize: vertical; 
+            min-height: 70px; 
+            line-height: 1.5; 
+        }
+        select:focus, input:focus, textarea:focus { 
+            outline: none; 
+            border-color: #3182ce; 
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2); 
+        }
+        
+        .btn { 
+            background: #3182ce; 
+            color: white; 
+            border: none; 
+            padding: 11px 16px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            width: 100%; 
+            font-size: 16px; 
+            font-weight: 600; 
+            transition: background 0.2s, transform 0.1s; 
+        }
+        .btn:hover { background: #2b6cb0; }
+        .btn:active { transform: translateY(1px); }
+
+        .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+        .header-flex h2 { margin: 0; text-align: left; font-size: 22px; color: #1a202c; }
+        .logout-btn { 
+            background: #e53e3e; 
+            width: auto; 
+            padding: 6px 14px; 
+            font-size: 13px; 
+            border-radius: 6px;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+        .logout-btn:hover { background: #c53030; }
+        
+        .user-status-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #edf2f7;
+        }
+        .badge { 
+            display: inline-block; 
+            padding: 3px 10px; 
+            border-radius: 20px; 
+            background: #ebf8ff; 
+            color: #2b6cb0; 
+            font-size: 13px; 
+            font-weight: 600; 
+        }
+
+        /* 句子式記帳區塊 */
+        .sentence-card {
+            background: #f7fafc;
+            border: 1.5px solid #edf2f7;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .sentence-inline-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 12px;
+        }
+        .sentence-select {
+            flex: 1 1 110px;
+            min-width: 90px;
+            font-weight: bold;
+            color: #2b6cb0;
+            background-color: #ffffff;
+        }
+        .sentence-amount {
+            flex: 1 1 100px;
+            min-width: 85px;
+            font-weight: bold;
+            color: #c53030;
+        }
+        .sentence-connect {
+            white-space: nowrap;
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        /* 帳目卡片 */
+        .item-card { 
+            background: #ffffff; 
+            border: 1.5px solid #edf2f7; 
+            padding: 14px 16px; 
+            border-radius: 10px; 
+            margin-bottom: 12px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-start;
+            gap: 12px;
+            transition: all 0.2s;
+        }
+        .item-card.settled { 
+            background: #f0fff4; 
+            border-color: #c6f6d5; 
+            opacity: 0.75;
+        }
+        .item-card.settled .statement-text { 
+            text-decoration: line-through; 
+            color: #718096; 
+        }
+        .item-content { flex: 1; word-break: break-word; }
+        
+        .statement-text {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #2d3748;
+            margin-bottom: 6px;
+        }
+        .user-tag {
+            display: inline-block;
+            background: #ebf8ff;
+            color: #2b6cb0;
+            padding: 1px 7px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+        .amount-tag {
+            color: #e53e3e;
+            font-weight: 800;
+            font-size: 16px;
+        }
+        .note-tag {
+            color: #4a5568;
+            font-weight: 500;
+        }
+        .meta { 
+            font-size: 12px; 
+            color: #a0aec0; 
+        }
+        .settle-check {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            color: #4a5568;
+            user-select: none;
+            white-space: nowrap;
+            padding-top: 2px;
+        }
+        .settle-check input { cursor: pointer; width: 16px; height: 16px; }
     </style>
 </head>
 <body>
@@ -56,7 +223,7 @@
             <label for="room-password">3. 空間密碼</label>
             <input type="password" id="room-password" placeholder="請輸入該空間密碼" onkeydown="if(event.key==='Enter') login()">
         </div>
-        <button onclick="login()">進入記帳本</button>
+        <button class="btn" onclick="login()">進入記帳本</button>
     </div>
 
     <!-- 記帳主畫面 -->
@@ -65,25 +232,30 @@
             <h2 id="current-room-title">記帳本</h2>
             <button class="logout-btn" onclick="logout()">登出</button>
         </div>
-        <p style="margin-top: 0; margin-bottom: 20px; color: #7f8c8d; font-size: 14px;">
-            空間：<span id="current-room-display" class="badge"></span>
-            &nbsp;｜&nbsp;
-            目前身分：<span id="current-user-display" style="font-weight: bold; color: #2c3e50;"></span>
-        </p>
         
-        <div class="form-group">
-            <label for="amount">金額 ($)</label>
-            <input type="number" id="amount" placeholder="輸入金額">
+        <div class="user-status-bar">
+            <span>空間：<span id="current-room-display" class="badge"></span></span>
+            <span>・</span>
+            <span>目前身分：<strong id="current-user-display" style="color: #2d3748;"></strong></span>
         </div>
-        <div class="form-group">
-            <label for="note">備註</label>
-            <input type="text" id="note" placeholder="例如：代拍、晚餐、飲料">
+        
+        <!-- 句子式記帳表單 -->
+        <div class="sentence-card">
+            <div class="sentence-inline-row">
+                <select id="from-user-select" class="sentence-select" title="付款人"></select>
+                <span class="sentence-connect">要給</span>
+                <select id="to-user-select" class="sentence-select" title="收款人"></select>
+                <input type="number" id="amount" class="sentence-amount" placeholder="金額" min="1">
+                <span class="sentence-connect">元，項目是</span>
+            </div>
+            
+            <textarea id="note" placeholder="請輸入項目說明（不限字數，例如：代買午餐、宵夜、高鐵票...）"></textarea>
         </div>
-        <button onclick="addAccount()">新增一筆帳</button>
+        <button class="btn" onclick="addAccount()">新增一筆帳</button>
 
-        <hr style="margin: 24px 0; border: 0; border-top: 1px solid #eee;">
+        <hr style="margin: 24px 0 16px 0; border: 0; border-top: 1px solid #edf2f7;">
         
-        <h3 style="margin-bottom: 12px; color: #2c3e50;">帳目列表</h3>
+        <h3 style="margin-bottom: 14px; color: #2d3748; font-size: 17px;">帳目列表</h3>
         <div id="accounts-list">載入中...</div>
     </div>
 </div>
@@ -115,12 +287,12 @@
             roomsData = await res.json();
             const roomSelect = document.getElementById('room-select');
             
-            if (roomsData.length === 0) {
+            if (!roomsData || roomsData.length === 0) {
                 roomSelect.innerHTML = '<option value="" disabled>目前無可用空間</option>';
                 return;
             }
 
-            roomSelect.innerHTML = roomsData.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+            roomSelect.innerHTML = roomsData.map(r => `<option value="${r.id}">${escapeHtml(r.name)}</option>`).join('');
             onRoomChange();
         } catch (err) {
             console.error('載入空間清單失敗', err);
@@ -135,9 +307,32 @@
         const userSelect = document.getElementById('user-select');
 
         if (room && room.members && room.members.length > 0) {
-            userSelect.innerHTML = room.members.map(m => `<option value="${m}">${m}</option>`).join('');
+            userSelect.innerHTML = room.members.map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
         } else {
             userSelect.innerHTML = '<option value="" disabled>無可用成員</option>';
+        }
+    }
+
+    function updateFormMemberSelectors() {
+        const room = roomsData.find(r => r.id === currentRoomId);
+        if (!room || !room.members) return;
+
+        const fromSelect = document.getElementById('from-user-select');
+        const toSelect = document.getElementById('to-user-select');
+
+        const optionsHtml = room.members.map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
+        fromSelect.innerHTML = optionsHtml;
+        toSelect.innerHTML = optionsHtml;
+
+        // 預設付款人為當前登入者
+        if (room.members.includes(currentUser)) {
+            fromSelect.value = currentUser;
+        }
+
+        // 預設收款人為另一位成員（若有）
+        const otherMember = room.members.find(m => m !== currentUser);
+        if (otherMember) {
+            toSelect.value = otherMember;
         }
     }
 
@@ -202,6 +397,7 @@
         document.getElementById('current-room-title').innerText = currentRoomName;
         document.getElementById('current-room-display').innerText = currentRoomName;
         document.getElementById('current-user-display').innerText = currentUser;
+        updateFormMemberSelectors();
         loadAccounts();
     }
 
@@ -212,36 +408,52 @@
 
             const listDiv = document.getElementById('accounts-list');
             if (!Array.isArray(accounts) || accounts.length === 0) {
-                listDiv.innerHTML = '<p style="text-align:center; color:#7f8c8d; padding: 20px 0;">此空間目前沒有任何帳目紀錄</p>';
+                listDiv.innerHTML = '<p style="text-align:center; color:#a0aec0; padding: 24px 0;">此空間目前沒有任何帳目紀錄</p>';
                 return;
             }
 
-            listDiv.innerHTML = accounts.map(item => `
-                <div class="item-card ${item.settled ? 'settled' : ''}">
-                    <div>
-                        <strong>$${item.amount}</strong> - ${escapeHtml(item.note || '無備註')}
-                        <div class="meta">記錄者：${escapeHtml(item.user)} | ${escapeHtml(item.time)}</div>
+            listDiv.innerHTML = accounts.map(item => {
+                const from = item.fromUser || item.user;
+                const to = item.toUser || '';
+                const statementHtml = to 
+                    ? `<span class="user-tag">${escapeHtml(from)}</span> 要給 <span class="user-tag">${escapeHtml(to)}</span> <span class="amount-tag">${item.amount}</span> 元，項目是 <span class="note-tag">${escapeHtml(item.note || '無備註')}</span>`
+                    : `<span class="user-tag">${escapeHtml(from)}</span> 記了一筆 <span class="amount-tag">$${item.amount}</span>，項目是 <span class="note-tag">${escapeHtml(item.note || '無備註')}</span>`;
+
+                return `
+                    <div class="item-card ${item.settled ? 'settled' : ''}">
+                        <div class="item-content">
+                            <div class="statement-text">${statementHtml}</div>
+                            <div class="meta">記錄者：${escapeHtml(item.user)} ｜ ${escapeHtml(item.time)}</div>
+                        </div>
+                        <div>
+                            <label class="settle-check">
+                                <input type="checkbox" ${item.settled ? 'checked' : ''} onclick="toggleSettled('${item.id}', this.checked)"> 已結清
+                            </label>
+                        </div>
                     </div>
-                    <div>
-                        <label style="font-weight:normal; cursor:pointer;">
-                            <input type="checkbox" ${item.settled ? 'checked' : ''} onclick="toggleSettled('${item.id}', this.checked)"> 已結清
-                        </label>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         } catch (err) {
-            document.getElementById('accounts-list').innerHTML = '<p style="text-align:center; color:#e74c3c;">載入帳目失敗，請重新整理頁面</p>';
+            document.getElementById('accounts-list').innerHTML = '<p style="text-align:center; color:#e53e3e;">載入帳目失敗，請重新整理頁面</p>';
         }
     }
 
     async function addAccount() {
+        const fromUser = document.getElementById('from-user-select').value;
+        const toUser = document.getElementById('to-user-select').value;
         const amountInput = document.getElementById('amount');
         const noteInput = document.getElementById('note');
         const amount = amountInput.value.trim();
         const note = noteInput.value.trim();
 
-        if (!amount) {
-            alert('請填寫金額！');
+        if (!amount || Number(amount) <= 0) {
+            alert('請填寫正確的金額！');
+            amountInput.focus();
+            return;
+        }
+
+        if (fromUser === toUser) {
+            alert('付款人與收款人不能是同一位成員！');
             return;
         }
 
@@ -249,7 +461,14 @@
             const res = await fetch('/api/accounts', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ roomId: currentRoomId, user: currentUser, amount, note })
+                body: JSON.stringify({ 
+                    roomId: currentRoomId, 
+                    user: currentUser, 
+                    fromUser, 
+                    toUser, 
+                    amount, 
+                    note 
+                })
             });
             const data = await res.json();
 

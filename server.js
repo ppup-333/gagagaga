@@ -26,6 +26,8 @@ let memoryAccounts = [
         id: '1',
         roomId: 'gaga',
         user: '忍',
+        fromUser: '忍',
+        toUser: '凱',
         amount: 350,
         note: '晚餐代墊',
         settled: false,
@@ -41,7 +43,7 @@ if (hasDb) {
     });
 }
 
-// 初始化資料庫表格（若不存在則自動建立，並確保包含 room_id 欄位）
+// 初始化資料庫表格（若不存在則自動建立，並確保包含 room_id, from_user, to_user 欄位）
 async function initDB() {
     if (!pool) {
         console.log("未檢測到 DATABASE_URL，本地運行於記憶體模式。");
@@ -53,12 +55,16 @@ async function initDB() {
                 id SERIAL PRIMARY KEY,
                 room_id TEXT DEFAULT 'gaga',
                 user_name TEXT NOT NULL,
+                from_user TEXT,
+                to_user TEXT,
                 amount NUMERIC NOT NULL,
                 note TEXT,
                 settled BOOLEAN DEFAULT FALSE,
                 time TEXT NOT NULL
             );
             ALTER TABLE accounts ADD COLUMN IF NOT EXISTS room_id TEXT DEFAULT 'gaga';
+            ALTER TABLE accounts ADD COLUMN IF NOT EXISTS from_user TEXT;
+            ALTER TABLE accounts ADD COLUMN IF NOT EXISTS to_user TEXT;
         `);
         console.log("PostgreSQL 資料庫與表格檢查/建立成功！");
     } catch (err) {
@@ -122,6 +128,8 @@ app.get('/api/accounts', async (req, res) => {
             id: row.id.toString(),
             roomId: row.room_id,
             user: row.user_name,
+            fromUser: row.from_user || row.user_name,
+            toUser: row.to_user || '',
             amount: Number(row.amount),
             note: row.note,
             settled: row.settled,
@@ -136,8 +144,11 @@ app.get('/api/accounts', async (req, res) => {
 
 // 5. 新增一筆帳 API
 app.post('/api/accounts', async (req, res) => {
-    const { roomId = 'gaga', user, amount, note } = req.body;
-    if (!amount || !user) {
+    const { roomId = 'gaga', user, fromUser, toUser, amount, note } = req.body;
+    const finalFrom = fromUser || user;
+    const finalTo = toUser || '';
+
+    if (!amount || !finalFrom) {
         return res.status(400).json({ success: false, message: '缺少必要欄位' });
     }
     
@@ -148,6 +159,8 @@ app.post('/api/accounts', async (req, res) => {
             id: (memoryIdCounter++).toString(),
             roomId,
             user,
+            fromUser: finalFrom,
+            toUser: finalTo,
             amount: Number(amount),
             note: note || '',
             settled: false,
@@ -159,14 +172,16 @@ app.post('/api/accounts', async (req, res) => {
 
     try {
         const result = await pool.query(
-            'INSERT INTO accounts (room_id, user_name, amount, note, settled, time) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-            [roomId, user, amount, note || '', false, timeStr]
+            'INSERT INTO accounts (room_id, user_name, from_user, to_user, amount, note, settled, time) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+            [roomId, user, finalFrom, finalTo, amount, note || '', false, timeStr]
         );
         const row = result.rows[0];
         const newEntry = {
             id: row.id.toString(),
             roomId: row.room_id,
             user: row.user_name,
+            fromUser: row.from_user || row.user_name,
+            toUser: row.to_user || '',
             amount: Number(row.amount),
             note: row.note,
             settled: row.settled,
