@@ -85,9 +85,10 @@
             gap: 8px;
             font-size: 14px;
             color: #718096;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             padding-bottom: 12px;
             border-bottom: 1px solid #edf2f7;
+            flex-wrap: wrap;
         }
         .badge { 
             display: inline-block; 
@@ -97,6 +98,30 @@
             color: #2b6cb0; 
             font-size: 13px; 
             font-weight: 600; 
+        }
+        .admin-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: #feebc8;
+            color: #c05621;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        /* 管理員提示區塊 */
+        .admin-banner {
+            background: #fffaf0;
+            border: 1px solid #feebc8;
+            color: #c05621;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         /* 句子式記帳表單區塊 */
@@ -235,6 +260,14 @@
             color: #a0aec0; 
         }
         
+        /* 卡片右側按鈕區域 */
+        .card-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
         /* 結清核取方塊樣式 */
         .settle-check {
             cursor: pointer;
@@ -268,6 +301,25 @@
             cursor: not-allowed;
             pointer-events: none;
         }
+
+        /* 管理員刪除按鈕 */
+        .delete-btn {
+            background: #fff5f5;
+            color: #e53e3e;
+            border: 1px solid #fed7d7;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .delete-btn:hover {
+            background: #e53e3e;
+            color: white;
+            border-color: #e53e3e;
+        }
     </style>
 </head>
 <body>
@@ -290,7 +342,7 @@
         </div>
         <div class="form-group">
             <label for="room-password">3. 空間密碼</label>
-            <input type="password" id="room-password" placeholder="請輸入該空間密碼" onkeydown="if(event.key==='Enter') login()">
+            <input type="password" id="room-password" placeholder="請輸入該空間密碼 (管理員請輸 iamadmin)" onkeydown="if(event.key==='Enter') login()">
         </div>
         <button class="btn" onclick="login()">進入記帳本</button>
     </div>
@@ -298,7 +350,7 @@
     <!-- 記帳主畫面 -->
     <div id="app-section" class="hidden">
         <div class="header-flex">
-            <h2 id="current-room-title">欠錢記帳本</h2>
+            <h2 id="current-room-title">記帳本</h2>
             <button class="logout-btn" onclick="logout()">登出</button>
         </div>
         
@@ -306,6 +358,12 @@
             <span>空間：<span id="current-room-display" class="badge"></span></span>
             <span>・</span>
             <span>目前身分：<strong id="current-user-display" style="color: #2d3748;"></strong></span>
+            <span id="admin-badge-indicator" class="admin-badge hidden">👑 管理員</span>
+        </div>
+
+        <!-- 管理員模式提示橫幅 -->
+        <div id="admin-banner" class="admin-banner hidden">
+            <span>👑 <strong>管理員模式已啟用</strong>：您可在此空間管理並直接刪除任何帳目紀錄。</span>
         </div>
         
         <!-- 句子式記帳表單（項目換行自首字起顯示） -->
@@ -337,6 +395,7 @@
     let currentRoomId = '';
     let currentRoomName = '';
     let currentUser = '';
+    let isAdmin = false;
 
     window.onload = async () => {
         await fetchRooms();
@@ -344,10 +403,11 @@
         const savedRoomName = localStorage.getItem('accounting_room_name');
         const savedUser = localStorage.getItem('accounting_user');
         const isAuth = localStorage.getItem('accounting_auth');
+        isAdmin = (localStorage.getItem('accounting_is_admin') === 'true');
 
         if (savedRoomId && savedUser && isAuth === 'true') {
             currentRoomId = savedRoomId;
-            currentRoomName = savedRoomName || '欠錢記帳本';
+            currentRoomName = savedRoomName || '記帳本';
             currentUser = savedUser;
             showApp();
         }
@@ -400,6 +460,9 @@
         if (room.members.includes(currentUser)) {
             fromSelect.value = currentUser;
             toSelect.value = currentUser;
+        } else if (room.members.length >= 2) {
+            fromSelect.value = room.members[0];
+            toSelect.value = room.members[1];
         }
     }
 
@@ -430,10 +493,14 @@
                 currentRoomId = data.roomId;
                 currentRoomName = data.roomName;
                 currentUser = data.user;
+                isAdmin = Boolean(data.isAdmin);
+
                 localStorage.setItem('accounting_room_id', currentRoomId);
                 localStorage.setItem('accounting_room_name', currentRoomName);
                 localStorage.setItem('accounting_user', currentUser);
                 localStorage.setItem('accounting_auth', 'true');
+                localStorage.setItem('accounting_is_admin', isAdmin ? 'true' : 'false');
+
                 document.getElementById('room-password').value = '';
                 showApp();
             } else {
@@ -449,9 +516,11 @@
         localStorage.removeItem('accounting_room_name');
         localStorage.removeItem('accounting_user');
         localStorage.removeItem('accounting_auth');
+        localStorage.removeItem('accounting_is_admin');
         currentRoomId = '';
         currentRoomName = '';
         currentUser = '';
+        isAdmin = false;
 
         document.getElementById('app-section').classList.add('hidden');
         document.getElementById('login-section').classList.remove('hidden');
@@ -464,6 +533,17 @@
         document.getElementById('current-room-title').innerText = currentRoomName;
         document.getElementById('current-room-display').innerText = currentRoomName;
         document.getElementById('current-user-display').innerText = currentUser;
+
+        const adminBadge = document.getElementById('admin-badge-indicator');
+        const adminBanner = document.getElementById('admin-banner');
+        if (isAdmin) {
+            adminBadge.classList.remove('hidden');
+            adminBanner.classList.remove('hidden');
+        } else {
+            adminBadge.classList.add('hidden');
+            adminBanner.classList.add('hidden');
+        }
+
         updateFormMemberSelectors();
         loadAccounts();
     }
@@ -484,8 +564,8 @@
                 const to = item.toUser || '';
                 const noteText = item.note || '無備註';
                 
-                // 檢查當前登入者是否為該筆帳目的相關兩位成員之一
-                const isRelevant = (currentUser === from || currentUser === to);
+                // 檢查當前登入者是否為該筆帳目的相關兩位成員之一，或是管理員
+                const isRelevant = isAdmin || (currentUser === from || currentUser === to);
 
                 const statementMainHtml = to 
                     ? `<span class="user-tag">${escapeHtml(from)}</span> 要給 <span class="user-tag">${escapeHtml(to)}</span> <span class="amount-tag">${item.amount}</span> 元`
@@ -499,6 +579,10 @@
                            <input type="checkbox" ${item.settled ? 'checked' : ''} disabled> 已結清
                        </label>`;
 
+                const deleteBtnHtml = isAdmin 
+                    ? `<button class="delete-btn" onclick="deleteAccount('${item.id}')" title="管理員刪除此紀錄">🗑️ 刪除</button>`
+                    : '';
+
                 return `
                     <div class="item-card ${item.settled ? 'settled' : ''}">
                         <div class="item-content">
@@ -509,8 +593,9 @@
                             </div>
                             <div class="meta">記錄者：${escapeHtml(item.user)} ｜ ${escapeHtml(item.time)}</div>
                         </div>
-                        <div>
+                        <div class="card-actions">
                             ${checkboxHtml}
+                            ${deleteBtnHtml}
                         </div>
                     </div>
                 `;
@@ -539,8 +624,8 @@
             return;
         }
 
-        // 檢查兩位成員至少有一位是登入者本人
-        if (fromUser !== currentUser && toUser !== currentUser) {
+        // 檢查兩位成員至少有一位是登入者本人（管理員除外）
+        if (!isAdmin && fromUser !== currentUser && toUser !== currentUser) {
             alert('不可以幫別人記帳');
             return;
         }
@@ -585,7 +670,11 @@
             const res = await fetch(`/api/accounts/${id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ settled, currentUser })
+                body: JSON.stringify({ 
+                    settled, 
+                    currentUser,
+                    adminPassword: isAdmin ? 'iamadmin' : ''
+                })
             });
             const data = await res.json();
             if (!data.success) {
@@ -595,6 +684,27 @@
         } catch (err) {
             alert('更新狀態失敗，請檢查網路連線');
             loadAccounts();
+        }
+    }
+
+    async function deleteAccount(id) {
+        if (!confirm('確定要刪除這筆帳目紀錄嗎？此動作無法復原。')) {
+            return;
+        }
+        try {
+            const res = await fetch(`/api/accounts/${id}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ adminPassword: 'iamadmin' })
+            });
+            const data = await res.json();
+            if (data.success) {
+                loadAccounts();
+            } else {
+                alert(data.message || '刪除失敗');
+            }
+        } catch (err) {
+            alert('刪除失敗，請檢查網路連線');
         }
     }
 
