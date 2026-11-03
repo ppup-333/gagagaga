@@ -3,11 +3,11 @@ const { Pool } = require('pg');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 記帳空間設定清單（網站名稱改為「欠錢記帳本」）
+// 記帳空間設定清單（空間選項名稱維持「嘎仔記帳本」）
 const ROOMS = [
     {
         id: 'gaga',
-        name: '欠錢記帳本',
+        name: '嘎仔記帳本',
         password: 'gaga',
         members: ['忍', '凱', '果', '雷']
     }
@@ -50,6 +50,13 @@ function cleanMemoryData() {
             item.fromUser = '雷';
             item.toUser = '凱';
             item.user = '雷';
+        }
+    });
+
+    // 3. 刪除備註中的「給凱邦德」四個字
+    memoryAccounts.forEach(item => {
+        if (item.note && item.note.includes('給凱邦德')) {
+            item.note = item.note.replace('給凱邦德', '').trim();
         }
     });
 }
@@ -112,6 +119,16 @@ async function initDB() {
         `);
         if (updateRes.rowCount > 0) {
             console.log(`[資料維護] 已將 ${updateRes.rowCount} 筆 '黃四郎' 的資料修正為 '雷' 要給 '凱'。`);
+        }
+
+        // 3. 刪除備註中特定字串「給凱邦德」
+        const updateNoteRes = await pool.query(`
+            UPDATE accounts 
+            SET note = TRIM(REPLACE(note, '給凱邦德', ''))
+            WHERE note LIKE '%給凱邦德%';
+        `);
+        if (updateNoteRes.rowCount > 0) {
+            console.log(`[資料維護] 已移除 ${updateNoteRes.rowCount} 筆備註中的「給凱邦德」。`);
         }
 
     } catch (err) {

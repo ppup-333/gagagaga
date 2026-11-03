@@ -396,15 +396,10 @@
         fromSelect.innerHTML = optionsHtml;
         toSelect.innerHTML = optionsHtml;
 
-        // 預設付款人為當前登入者
+        // 填寫帳目的成員選單都預設選擇登入者自己
         if (room.members.includes(currentUser)) {
             fromSelect.value = currentUser;
-        }
-
-        // 預設收款人為另一位成員（若有）
-        const otherMember = room.members.find(m => m !== currentUser);
-        if (otherMember) {
-            toSelect.value = otherMember;
+            toSelect.value = currentUser;
         }
     }
 
@@ -562,6 +557,7 @@
             if (data.success) {
                 amountInput.value = '';
                 noteInput.value = '';
+                updateFormMemberSelectors();
                 loadAccounts();
             } else {
                 alert(data.message || '新增失敗');
