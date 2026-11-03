@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>嘎仔記帳本</title>
+    <title>欠錢記帳本</title>
     <style>
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
@@ -99,7 +99,7 @@
             font-weight: 600; 
         }
 
-        /* 句子式記帳區塊 */
+        /* 句子式記帳表單區塊 */
         .sentence-card {
             background: #f7fafc;
             border: 1.5px solid #edf2f7;
@@ -115,7 +115,7 @@
             font-size: 16px;
             font-weight: 600;
             color: #2d3748;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
         .sentence-select {
             flex: 1 1 110px;
@@ -134,6 +134,18 @@
             white-space: nowrap;
             color: #4a5568;
             font-weight: 600;
+        }
+        
+        /* 換行顯示的項目區塊 */
+        .sentence-note-row {
+            margin-top: 10px;
+        }
+        .sentence-item-label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 15px;
         }
 
         /* 帳目卡片 */
@@ -154,18 +166,37 @@
             border-color: #c6f6d5; 
             opacity: 0.75;
         }
-        .item-card.settled .statement-text { 
+        .item-card.settled .statement-main,
+        .item-card.settled .statement-item-line { 
             text-decoration: line-through; 
             color: #718096; 
         }
         .item-content { flex: 1; word-break: break-word; }
         
-        .statement-text {
+        /* 列表第一行：誰要給誰多少元 */
+        .statement-main {
             font-size: 15px;
-            line-height: 1.7;
+            line-height: 1.6;
             color: #2d3748;
             margin-bottom: 6px;
         }
+        /* 列表第二行：換行從第一個字開始顯示項目 */
+        .statement-item-line {
+            font-size: 14.5px;
+            line-height: 1.6;
+            color: #4a5568;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .item-lead-text {
+            font-weight: 600;
+            color: #4a5568;
+            white-space: nowrap;
+        }
+        
         .user-tag {
             display: inline-block;
             background: #ebf8ff;
@@ -191,7 +222,6 @@
             border-radius: 6px;
             font-weight: 600;
             font-size: 14px;
-            margin-left: 4px;
             word-break: break-word;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
         }
@@ -204,18 +234,40 @@
             font-size: 12px; 
             color: #a0aec0; 
         }
+        
+        /* 結清核取方塊樣式 */
         .settle-check {
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 5px;
             font-size: 13px;
             color: #4a5568;
             user-select: none;
             white-space: nowrap;
-            padding-top: 2px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            background: #f7fafc;
+            border: 1px solid #edf2f7;
+            transition: all 0.2s;
         }
-        .settle-check input { cursor: pointer; width: 16px; height: 16px; }
+        .settle-check:hover:not(.disabled) {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+        }
+        .settle-check input { cursor: pointer; width: 16px; height: 16px; margin: 0; }
+        
+        /* 非相關成員不可點擊樣式 */
+        .settle-check.disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            background: #edf2f7;
+            border-color: #e2e8f0;
+        }
+        .settle-check.disabled input {
+            cursor: not-allowed;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -223,7 +275,7 @@
 <div class="container">
     <!-- 登入畫面 -->
     <div id="login-section">
-        <h2>嘎仔記帳本</h2>
+        <h2>欠錢記帳本</h2>
         <div class="form-group">
             <label for="room-select">1. 選擇記帳空間</label>
             <select id="room-select" onchange="onRoomChange()">
@@ -246,7 +298,7 @@
     <!-- 記帳主畫面 -->
     <div id="app-section" class="hidden">
         <div class="header-flex">
-            <h2 id="current-room-title">記帳本</h2>
+            <h2 id="current-room-title">欠錢記帳本</h2>
             <button class="logout-btn" onclick="logout()">登出</button>
         </div>
         
@@ -256,17 +308,20 @@
             <span>目前身分：<strong id="current-user-display" style="color: #2d3748;"></strong></span>
         </div>
         
-        <!-- 句子式記帳表單 -->
+        <!-- 句子式記帳表單（項目換行自首字起顯示） -->
         <div class="sentence-card">
             <div class="sentence-inline-row">
                 <select id="from-user-select" class="sentence-select" title="付款人"></select>
                 <span class="sentence-connect">要給</span>
                 <select id="to-user-select" class="sentence-select" title="收款人"></select>
                 <input type="number" id="amount" class="sentence-amount" placeholder="金額" min="1">
-                <span class="sentence-connect">元，項目是</span>
+                <span class="sentence-connect">元</span>
             </div>
             
-            <textarea id="note" placeholder="請輸入項目說明（不限字數，例如：代買午餐、宵夜、高鐵票...）"></textarea>
+            <div class="sentence-note-row">
+                <label for="note" class="sentence-item-label">項目是：</label>
+                <textarea id="note" placeholder="請輸入項目說明（不限字數，例如：代買午餐、宵夜、高鐵票...）"></textarea>
+            </div>
         </div>
         <button class="btn" onclick="addAccount()">新增一筆帳</button>
 
@@ -292,7 +347,7 @@
 
         if (savedRoomId && savedUser && isAuth === 'true') {
             currentRoomId = savedRoomId;
-            currentRoomName = savedRoomName || '記帳本';
+            currentRoomName = savedRoomName || '欠錢記帳本';
             currentUser = savedUser;
             showApp();
         }
@@ -434,20 +489,33 @@
                 const to = item.toUser || '';
                 const noteText = item.note || '無備註';
                 
-                const statementHtml = to 
-                    ? `<span class="user-tag">${escapeHtml(from)}</span> 要給 <span class="user-tag">${escapeHtml(to)}</span> <span class="amount-tag">${item.amount}</span> 元，項目是 <span class="note-tag">🏷️ ${escapeHtml(noteText)}</span>`
-                    : `<span class="user-tag">${escapeHtml(from)}</span> 記了一筆 <span class="amount-tag">$${item.amount}</span>，項目是 <span class="note-tag">🏷️ ${escapeHtml(noteText)}</span>`;
+                // 檢查當前登入者是否為該筆帳目的相關兩位成員之一
+                const isRelevant = (currentUser === from || currentUser === to);
+
+                const statementMainHtml = to 
+                    ? `<span class="user-tag">${escapeHtml(from)}</span> 要給 <span class="user-tag">${escapeHtml(to)}</span> <span class="amount-tag">${item.amount}</span> 元`
+                    : `<span class="user-tag">${escapeHtml(from)}</span> 記了一筆 <span class="amount-tag">$${item.amount}</span>`;
+
+                const checkboxHtml = isRelevant
+                    ? `<label class="settle-check" title="點擊切換結清狀態">
+                           <input type="checkbox" ${item.settled ? 'checked' : ''} onchange="toggleSettled('${item.id}', this.checked)"> 已結清
+                       </label>`
+                    : `<label class="settle-check disabled" title="只有相關的兩位成員（${escapeHtml(from)} 或 ${escapeHtml(to)}）可以變更結清狀態">
+                           <input type="checkbox" ${item.settled ? 'checked' : ''} disabled> 已結清
+                       </label>`;
 
                 return `
                     <div class="item-card ${item.settled ? 'settled' : ''}">
                         <div class="item-content">
-                            <div class="statement-text">${statementHtml}</div>
+                            <div class="statement-main">${statementMainHtml}</div>
+                            <div class="statement-item-line">
+                                <span class="item-lead-text">項目是：</span>
+                                <span class="note-tag">🏷️ ${escapeHtml(noteText)}</span>
+                            </div>
                             <div class="meta">記錄者：${escapeHtml(item.user)} ｜ ${escapeHtml(item.time)}</div>
                         </div>
                         <div>
-                            <label class="settle-check">
-                                <input type="checkbox" ${item.settled ? 'checked' : ''} onclick="toggleSettled('${item.id}', this.checked)"> 已結清
-                            </label>
+                            ${checkboxHtml}
                         </div>
                     </div>
                 `;
@@ -505,14 +573,19 @@
 
     async function toggleSettled(id, settled) {
         try {
-            await fetch(`/api/accounts/${id}`, {
+            const res = await fetch(`/api/accounts/${id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ settled })
+                body: JSON.stringify({ settled, currentUser })
             });
+            const data = await res.json();
+            if (!data.success) {
+                alert(data.message || '更新狀態失敗');
+            }
             loadAccounts();
         } catch (err) {
-            alert('更新狀態失敗');
+            alert('更新狀態失敗，請檢查網路連線');
+            loadAccounts();
         }
     }
 

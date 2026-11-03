@@ -3,11 +3,11 @@ const { Pool } = require('pg');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 記帳空間設定清單（可在此擴充更多空間、成員與專屬密碼）
+// 記帳空間設定清單（網站名稱改為「欠錢記帳本」）
 const ROOMS = [
     {
         id: 'gaga',
-        name: '嘎仔記帳本',
+        name: '欠錢記帳本',
         password: 'gaga',
         members: ['忍', '凱', '果', '雷']
     }
@@ -241,22 +241,43 @@ app.post('/api/accounts', async (req, res) => {
     }
 });
 
-// 6. 更新結清狀態 API
+// 6. 更新結清狀態 API（限制只有該筆帳目相關的兩位成員才可操作）
 app.patch('/api/accounts/:id', async (req, res) => {
     const { id } = req.params;
-    const { settled } = req.body;
+    const { settled, currentUser } = req.body;
 
     if (!pool) {
         const target = memoryAccounts.find(item => item.id === id);
-        if (target) {
-            target.settled = Boolean(settled);
-            return res.json({ success: true });
-        } else {
+        if (!target) {
             return res.status(404).json({ success: false, message: '找不到該筆紀錄' });
         }
+        const from = target.fromUser || target.user;
+        const to = target.toUser;
+        if (currentUser && currentUser !== from && currentUser !== to) {
+            return res.status(403).json({ 
+                success: false, 
+                message: `權限不足：只有相關的兩位成員（${from} 或 ${to}）才能變更結清狀態！` 
+            });
+        }
+        target.settled = Boolean(settled);
+        return res.json({ success: true });
     }
 
     try {
+        const queryRes = await pool.query('SELECT * FROM accounts WHERE id = $1', [id]);
+        if (queryRes.rows.length === 0) {
+            return res.status(404).json({ success: false, message: '找不到該筆紀錄' });
+        }
+        const row = queryRes.rows[0];
+        const from = row.from_user || row.user_name;
+        const to = row.to_user;
+        if (currentUser && currentUser !== from && currentUser !== to) {
+            return res.status(403).json({ 
+                success: false, 
+                message: `權限不足：只有相關的兩位成員（${from} 或 ${to}）才能變更結清狀態！` 
+            });
+        }
+
         const result = await pool.query(
             'UPDATE accounts SET settled = $1 WHERE id = $2 RETURNING *',
             [settled, id]
