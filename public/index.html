@@ -319,8 +319,8 @@
             </div>
             
             <div class="sentence-note-row">
-                <label for="note" class="sentence-item-label">項目是：</label>
-                <textarea id="note" placeholder="請輸入項目說明（不限字數，例如：代買午餐、宵夜、高鐵票...）"></textarea>
+                <label for="note" class="sentence-item-label">項目是（必填）：</label>
+                <textarea id="note" placeholder="請輸入項目說明（必填，例如：代買午餐、宵夜、高鐵票...）"></textarea>
             </div>
         </div>
         <button class="btn" onclick="addAccount()">新增一筆帳</button>
@@ -536,6 +536,19 @@
 
         if (fromUser === toUser) {
             alert('付款人與收款人不能是同一位成員！');
+            return;
+        }
+
+        // 檢查兩位成員至少有一位是登入者本人
+        if (fromUser !== currentUser && toUser !== currentUser) {
+            alert('不可以幫別人記帳');
+            return;
+        }
+
+        // 項目為必填
+        if (!note) {
+            alert('項目為必填，請輸入項目說明！');
+            noteInput.focus();
             return;
         }
 

@@ -59,6 +59,9 @@ function cleanMemoryData() {
             item.note = item.note.replace('給凱邦德', '').trim();
         }
     });
+
+    // 4. 清除金額為 1 元的資料
+    memoryAccounts = memoryAccounts.filter(item => Number(item.amount) !== 1);
 }
 
 if (hasDb) {
@@ -129,6 +132,12 @@ async function initDB() {
         `);
         if (updateNoteRes.rowCount > 0) {
             console.log(`[資料維護] 已移除 ${updateNoteRes.rowCount} 筆備註中的「給凱邦德」。`);
+        }
+
+        // 4. 清除金額為 1 元的資料
+        const deleteOneRes = await pool.query('DELETE FROM accounts WHERE amount = 1');
+        if (deleteOneRes.rowCount > 0) {
+            console.log(`[資料維護] 已清除 ${deleteOneRes.rowCount} 筆金額為 1 元的資料。`);
         }
 
     } catch (err) {
@@ -214,6 +223,16 @@ app.post('/api/accounts', async (req, res) => {
 
     if (!amount || !finalFrom) {
         return res.status(400).json({ success: false, message: '缺少必要欄位' });
+    }
+
+    // 檢查兩位成員至少有一位是登入者本人
+    if (finalFrom !== user && finalTo !== user) {
+        return res.status(403).json({ success: false, message: '不可以幫別人記帳' });
+    }
+
+    // 項目為必填檢查
+    if (!note || !note.trim()) {
+        return res.status(400).json({ success: false, message: '項目為必填欄位！' });
     }
     
     const timeStr = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
