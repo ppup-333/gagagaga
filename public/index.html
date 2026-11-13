@@ -379,6 +379,146 @@
             color: white;
             border-color: #e53e3e;
         }
+
+        /* 帳目列表標頭與成員頁籤 */
+        .accounts-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        .tabs-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 14px;
+            overflow-x: auto;
+            padding: 4px 2px 8px 2px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .tab-btn {
+            background: #edf2f7;
+            color: #4a5568;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .tab-btn:hover {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+        .tab-btn.active {
+            background: #3182ce;
+            color: #ffffff;
+            box-shadow: 0 2px 6px rgba(49, 130, 206, 0.35);
+        }
+
+        /* 單一成員記帳總表（可收折卡片） */
+        .summary-section {
+            background: #f7fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            transition: all 0.2s;
+        }
+        .summary-toggle-btn {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 11px 16px;
+            background: #edf2f7;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            color: #2b6cb0;
+            text-align: left;
+            transition: background 0.2s;
+        }
+        .summary-toggle-btn:hover {
+            background: #e2e8f0;
+        }
+        .summary-toggle-arrow {
+            font-size: 12px;
+            color: #718096;
+            font-weight: 600;
+        }
+        .summary-content {
+            padding: 12px 16px 14px 16px;
+            background: #ffffff;
+        }
+        .summary-filter-row {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 13px;
+            color: #718096;
+        }
+        .summary-filter-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .summary-filter-label input {
+            cursor: pointer;
+            width: 14px;
+            height: 14px;
+            margin: 0;
+        }
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+            text-align: right;
+        }
+        .summary-table th, .summary-table td {
+            padding: 9px 10px;
+            border-bottom: 1px solid #edf2f7;
+            white-space: nowrap;
+        }
+        .summary-table th:first-child, .summary-table td:first-child {
+            text-align: left;
+        }
+        .summary-table th {
+            background: #f7fafc;
+            color: #4a5568;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .summary-table tfoot td {
+            font-weight: 700;
+            background: #f8fafc;
+            border-top: 2px solid #cbd5e0;
+            border-bottom: none;
+        }
+        .pos-val {
+            color: #38a169;
+            font-weight: 700;
+        }
+        .neg-val {
+            color: #e53e3e;
+            font-weight: 700;
+        }
+        .zero-val {
+            color: #718096;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -459,7 +599,43 @@
             <hr style="margin: 24px 0 16px 0; border: 0; border-top: 1px solid #edf2f7;">
         </div>
         
-        <h3 style="margin-bottom: 14px; color: #2d3748; font-size: 17px;">帳目列表</h3>
+        <div class="accounts-header">
+            <h3 style="margin: 0; color: #2d3748; font-size: 17px;">帳目列表</h3>
+        </div>
+
+        <!-- 成員切換頁籤（包含全部與各成員） -->
+        <div id="member-tabs-container" class="tabs-container"></div>
+
+        <!-- 單一成員記帳總表（預設隱藏，點擊展開） -->
+        <div id="member-summary-section" class="summary-section hidden">
+            <button id="toggle-summary-btn" class="summary-toggle-btn" onclick="toggleSummaryCollapse()">
+                <span id="summary-toggle-title">📊 記帳總表</span>
+                <span id="summary-toggle-arrow" class="summary-toggle-arrow">▼ 點擊展開</span>
+            </button>
+            <div id="member-summary-content" class="summary-content hidden">
+                <div class="summary-filter-row">
+                    <label class="summary-filter-label" title="勾選時僅計算尚未結清之欠款">
+                        <input type="checkbox" id="summary-unsettled-only" checked onchange="renderSummaryTable()">
+                        僅統計未結清帳目
+                    </label>
+                </div>
+                <div class="table-responsive">
+                    <table class="summary-table">
+                        <thead>
+                            <tr>
+                                <th>對象成員</th>
+                                <th>支出</th>
+                                <th>收回</th>
+                                <th>實收</th>
+                            </tr>
+                        </thead>
+                        <tbody id="summary-table-body"></tbody>
+                        <tfoot id="summary-table-foot"></tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <div id="accounts-list">載入中...</div>
     </div>
 </div>
@@ -470,6 +646,9 @@
     let currentRoomName = '';
     let currentUser = '';
     let isAdmin = false;
+    let rawAccountsData = [];
+    let currentSelectedTab = 'ALL';
+    let isSummaryExpanded = false;
 
     window.onload = async () => {
         await fetchRooms();
@@ -595,6 +774,9 @@
         currentRoomName = '';
         currentUser = '';
         isAdmin = false;
+        currentSelectedTab = 'ALL';
+        isSummaryExpanded = false;
+        rawAccountsData = [];
 
         document.getElementById('app-section').classList.add('hidden');
         document.getElementById('login-section').classList.remove('hidden');
@@ -690,58 +872,244 @@
     async function loadAccounts() {
         try {
             const res = await fetch(`/api/accounts?roomId=${encodeURIComponent(currentRoomId)}`);
-            const accounts = await res.json();
-
-            const listDiv = document.getElementById('accounts-list');
-            if (!Array.isArray(accounts) || accounts.length === 0) {
-                listDiv.innerHTML = '<p style="text-align:center; color:#a0aec0; padding: 24px 0;">此空間目前沒有任何帳目紀錄</p>';
-                return;
+            rawAccountsData = await res.json();
+            if (!Array.isArray(rawAccountsData)) {
+                rawAccountsData = [];
             }
 
-            listDiv.innerHTML = accounts.map(item => {
-                const from = item.fromUser || item.user;
-                const to = item.toUser || '';
-                const noteText = item.note || '無備註';
-                
-                // 檢查當前登入者是否為該筆帳目的相關兩位成員之一，或是管理員
-                const isRelevant = isAdmin || (currentUser === from || currentUser === to);
+            renderMemberTabs();
+            renderFilteredAccounts();
 
-                const statementMainHtml = to 
-                    ? `<span class="user-tag">${escapeHtml(from)}</span> 要給 <span class="user-tag">${escapeHtml(to)}</span> <span class="amount-tag">${item.amount}</span> 元`
-                    : `<span class="user-tag">${escapeHtml(from)}</span> 記了一筆 <span class="amount-tag">$${item.amount}</span>`;
-
-                const checkboxHtml = isRelevant
-                    ? `<label class="settle-check" title="點擊切換結清狀態">
-                           <input type="checkbox" ${item.settled ? 'checked' : ''} onchange="toggleSettled('${item.id}', this.checked)"> 已結清
-                       </label>`
-                    : `<label class="settle-check disabled" title="只有相關的兩位成員（${escapeHtml(from)} 或 ${escapeHtml(to)}）可以變更結清狀態">
-                           <input type="checkbox" ${item.settled ? 'checked' : ''} disabled> 已結清
-                       </label>`;
-
-                const deleteBtnHtml = isAdmin 
-                    ? `<button class="delete-btn" onclick="deleteAccount('${item.id}')" title="管理員刪除此紀錄">🗑️ 刪除</button>`
-                    : '';
-
-                return `
-                    <div class="item-card ${item.settled ? 'settled' : ''}">
-                        <div class="item-content">
-                            <div class="statement-main">${statementMainHtml}</div>
-                            <div class="statement-item-line">
-                                <span class="item-lead-text">項目是：</span>
-                                <span class="note-tag">🏷️ ${escapeHtml(noteText)}</span>
-                            </div>
-                            <div class="meta">記錄者：${escapeHtml(item.user)} ｜ ${escapeHtml(item.time)}</div>
-                        </div>
-                        <div class="card-actions">
-                            ${checkboxHtml}
-                            ${deleteBtnHtml}
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            const summarySection = document.getElementById('member-summary-section');
+            if (currentSelectedTab !== 'ALL') {
+                if (summarySection) summarySection.classList.remove('hidden');
+                renderSummaryTable();
+            } else {
+                if (summarySection) summarySection.classList.add('hidden');
+            }
         } catch (err) {
             document.getElementById('accounts-list').innerHTML = '<p style="text-align:center; color:#e53e3e;">載入帳目失敗，請重新整理頁面</p>';
         }
+    }
+
+    function renderMemberTabs() {
+        const tabsContainer = document.getElementById('member-tabs-container');
+        if (!tabsContainer) return;
+
+        const room = roomsData.find(r => r.id === currentRoomId);
+        const members = (room && room.members) ? room.members : [];
+
+        if (currentSelectedTab !== 'ALL' && !members.includes(currentSelectedTab)) {
+            currentSelectedTab = 'ALL';
+        }
+
+        let tabsHtml = `
+            <button type="button" class="tab-btn ${currentSelectedTab === 'ALL' ? 'active' : ''}" onclick="selectTab('ALL')">
+                全部
+            </button>
+        `;
+
+        members.forEach(m => {
+            tabsHtml += `
+                <button type="button" class="tab-btn ${currentSelectedTab === m ? 'active' : ''}" onclick="selectTab('${escapeHtml(m)}')">
+                    ${escapeHtml(m)}
+                </button>
+            `;
+        });
+
+        tabsContainer.innerHTML = tabsHtml;
+    }
+
+    function selectTab(tabName) {
+        currentSelectedTab = tabName;
+        // 選擇單一成員時，總表預設保持隱藏，需點擊展開
+        isSummaryExpanded = false;
+        const summaryContent = document.getElementById('member-summary-content');
+        const toggleArrow = document.getElementById('summary-toggle-arrow');
+        if (summaryContent) summaryContent.classList.add('hidden');
+        if (toggleArrow) toggleArrow.innerText = '▼ 點擊展開';
+
+        const summarySection = document.getElementById('member-summary-section');
+        if (currentSelectedTab === 'ALL') {
+            if (summarySection) summarySection.classList.add('hidden');
+        } else {
+            if (summarySection) {
+                summarySection.classList.remove('hidden');
+                const summaryTitle = document.getElementById('summary-toggle-title');
+                if (summaryTitle) summaryTitle.innerText = `📊 ${currentSelectedTab} 的記帳總表`;
+            }
+            renderSummaryTable();
+        }
+
+        renderMemberTabs();
+        renderFilteredAccounts();
+    }
+
+    function toggleSummaryCollapse() {
+        isSummaryExpanded = !isSummaryExpanded;
+        const summaryContent = document.getElementById('member-summary-content');
+        const toggleArrow = document.getElementById('summary-toggle-arrow');
+        if (!summaryContent || !toggleArrow) return;
+
+        if (isSummaryExpanded) {
+            summaryContent.classList.remove('hidden');
+            toggleArrow.innerText = '▲ 點擊收起';
+            renderSummaryTable();
+        } else {
+            summaryContent.classList.add('hidden');
+            toggleArrow.innerText = '▼ 點擊展開';
+        }
+    }
+
+    function renderSummaryTable() {
+        if (currentSelectedTab === 'ALL') return;
+
+        const room = roomsData.find(r => r.id === currentRoomId);
+        if (!room || !room.members) return;
+
+        const M = currentSelectedTab;
+        const otherMembers = room.members.filter(m => m !== M);
+
+        const unsettledCheckbox = document.getElementById('summary-unsettled-only');
+        const unsettledOnly = unsettledCheckbox ? unsettledCheckbox.checked : true;
+
+        const targetAccounts = unsettledOnly ? rawAccountsData.filter(item => !item.settled) : rawAccountsData;
+
+        let totalExpense = 0;
+        let totalReceived = 0;
+
+        const tbody = document.getElementById('summary-table-body');
+        const tfoot = document.getElementById('summary-table-foot');
+        if (!tbody || !tfoot) return;
+
+        let rowsHtml = '';
+
+        otherMembers.forEach(O => {
+            let expense = 0;
+            let received = 0;
+
+            targetAccounts.forEach(item => {
+                const from = item.fromUser || item.user;
+                const to = item.toUser || '';
+                const amount = Number(item.amount) || 0;
+
+                if (from === M && to === O) {
+                    expense += amount;
+                } else if (from === O && to === M) {
+                    received += amount;
+                }
+            });
+
+            const net = received - expense; // 實收：收回 - 支出
+            totalExpense += expense;
+            totalReceived += received;
+
+            let netClass = 'zero-val';
+            let netText = '$0';
+            if (net > 0) {
+                netClass = 'pos-val';
+                netText = `+$${net.toLocaleString()}`;
+            } else if (net < 0) {
+                netClass = 'neg-val';
+                netText = `-$${Math.abs(net).toLocaleString()}`;
+            }
+
+            rowsHtml += `
+                <tr>
+                    <td><strong>${escapeHtml(O)}</strong></td>
+                    <td>$${expense.toLocaleString()}</td>
+                    <td>$${received.toLocaleString()}</td>
+                    <td class="${netClass}">${netText}</td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML = rowsHtml || '<tr><td colspan="4" style="text-align:center; color:#a0aec0;">無其他成員資料</td></tr>';
+
+        const totalNet = totalReceived - totalExpense;
+        let totalNetClass = 'zero-val';
+        let totalNetText = '$0';
+        if (totalNet > 0) {
+            totalNetClass = 'pos-val';
+            totalNetText = `+$${totalNet.toLocaleString()}`;
+        } else if (totalNet < 0) {
+            totalNetClass = 'neg-val';
+            totalNetText = `-$${Math.abs(totalNet).toLocaleString()}`;
+        }
+
+        tfoot.innerHTML = `
+            <tr>
+                <td>合計</td>
+                <td>$${totalExpense.toLocaleString()}</td>
+                <td>$${totalReceived.toLocaleString()}</td>
+                <td class="${totalNetClass}">${totalNetText}</td>
+            </tr>
+        `;
+    }
+
+    function renderFilteredAccounts() {
+        const listDiv = document.getElementById('accounts-list');
+        if (!listDiv) return;
+
+        let filtered = rawAccountsData;
+        if (currentSelectedTab !== 'ALL') {
+            filtered = rawAccountsData.filter(item => {
+                const from = item.fromUser || item.user;
+                const to = item.toUser || '';
+                return from === currentSelectedTab || to === currentSelectedTab;
+            });
+        }
+
+        if (!Array.isArray(filtered) || filtered.length === 0) {
+            if (currentSelectedTab === 'ALL') {
+                listDiv.innerHTML = '<p style="text-align:center; color:#a0aec0; padding: 24px 0;">此空間目前沒有任何帳目紀錄</p>';
+            } else {
+                listDiv.innerHTML = `<p style="text-align:center; color:#a0aec0; padding: 24px 0;">目前沒有與「${escapeHtml(currentSelectedTab)}」相關的帳目紀錄</p>`;
+            }
+            return;
+        }
+
+        listDiv.innerHTML = filtered.map(item => {
+            const from = item.fromUser || item.user;
+            const to = item.toUser || '';
+            const noteText = item.note || '無備註';
+            
+            // 檢查當前登入者是否為該筆帳目的相關兩位成員之一，或是管理員
+            const isRelevant = isAdmin || (currentUser === from || currentUser === to);
+
+            const statementMainHtml = to 
+                ? `<span class="user-tag">${escapeHtml(from)}</span> 要給 <span class="user-tag">${escapeHtml(to)}</span> <span class="amount-tag">${item.amount}</span> 元`
+                : `<span class="user-tag">${escapeHtml(from)}</span> 記了一筆 <span class="amount-tag">$${item.amount}</span>`;
+
+            const checkboxHtml = isRelevant
+                ? `<label class="settle-check" title="點擊切換結清狀態">
+                       <input type="checkbox" ${item.settled ? 'checked' : ''} onchange="toggleSettled('${item.id}', this.checked)"> 已結清
+                   </label>`
+                : `<label class="settle-check disabled" title="只有相關的兩位成員（${escapeHtml(from)} 或 ${escapeHtml(to)}）可以變更結清狀態">
+                       <input type="checkbox" ${item.settled ? 'checked' : ''} disabled> 已結清
+                   </label>`;
+
+            const deleteBtnHtml = isAdmin 
+                ? `<button class="delete-btn" onclick="deleteAccount('${item.id}')" title="管理員刪除此紀錄">🗑️ 刪除</button>`
+                : '';
+
+            return `
+                <div class="item-card ${item.settled ? 'settled' : ''}">
+                    <div class="item-content">
+                        <div class="statement-main">${statementMainHtml}</div>
+                        <div class="statement-item-line">
+                            <span class="item-lead-text">項目是：</span>
+                            <span class="note-tag">🏷️ ${escapeHtml(noteText)}</span>
+                        </div>
+                        <div class="meta">記錄者：${escapeHtml(item.user)} ｜ ${escapeHtml(item.time)}</div>
+                    </div>
+                    <div class="card-actions">
+                        ${checkboxHtml}
+                        ${deleteBtnHtml}
+                    </div>
+                </div>
+            `;
+        }).join('');
     }
 
     async function addAccount() {
