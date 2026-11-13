@@ -18,7 +18,12 @@ if "%~1"=="" (
 )
 echo 🚀 推送到遠端...
 git push origin main
-echo.
-echo 🎉 成功推送至 GitHub！
+if %errorlevel% equ 0 (
+    echo.
+    echo 🎉 成功推送至 GitHub！
+) else (
+    echo.
+    echo ❌ 推送失敗，請確認 Git 憑證或連線狀態。
+)
 
 :end
