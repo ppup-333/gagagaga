@@ -456,6 +456,84 @@ app.patch('/api/accounts/:id', async (req, res) => {
     }
 });
 
+// 6-1. 批次結清 API（限制只有每筆帳目相關的兩位成員或管理員才可操作）
+app.post('/api/accounts/batch-settle', async (req, res) => {
+    const { ids, currentUser, adminPassword } = req.body;
+    const isAdmin = (adminPassword === 'iamadmin');
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ success: false, message: '請選擇至少一筆要結清的帳目！' });
+    }
+
+    const uniqueIds = [...new Set(ids.map(id => String(id)))];
+
+    if (!pool) {
+        const targets = [];
+        for (const id of uniqueIds) {
+            const target = memoryAccounts.find(item => item.id === id);
+            if (!target) {
+                return res.status(404).json({ success: false, message: `找不到編號 ${id} 的帳目紀錄` });
+            }
+            const from = target.fromUser || target.user;
+            const to = target.toUser;
+            if (!isAdmin && (!currentUser || (currentUser !== from && currentUser !== to))) {
+                return res.status(403).json({
+                    success: false,
+                    message: `權限不足：只有相關的兩位成員（${from} 或 ${to}）才能結清該筆帳目！`
+                });
+            }
+            targets.push(target);
+        }
+
+        targets.forEach(t => { t.settled = true; });
+        return res.json({ success: true, settledCount: targets.length });
+    }
+
+    const numericIds = uniqueIds.map(id => Number(id));
+    if (numericIds.some(n => !Number.isInteger(n) || n <= 0)) {
+        return res.status(400).json({ success: false, message: '無效的帳目編號' });
+    }
+
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        const queryRes = await client.query(
+            'SELECT * FROM accounts WHERE id = ANY($1::int[])',
+            [numericIds]
+        );
+
+        if (queryRes.rows.length !== numericIds.length) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ success: false, message: '部分選取的帳目紀錄不存在，請重新整理後再試' });
+        }
+
+        for (const row of queryRes.rows) {
+            const from = row.from_user || row.user_name;
+            const to = row.to_user;
+            if (!isAdmin && (!currentUser || (currentUser !== from && currentUser !== to))) {
+                await client.query('ROLLBACK');
+                return res.status(403).json({
+                    success: false,
+                    message: `權限不足：只有相關的兩位成員（${from} 或 ${to}）才能結清該筆帳目！`
+                });
+            }
+        }
+
+        await client.query(
+            'UPDATE accounts SET settled = TRUE WHERE id = ANY($1::int[])',
+            [numericIds]
+        );
+        await client.query('COMMIT');
+        res.json({ success: true, settledCount: numericIds.length });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('批次結清失敗：', err);
+        res.status(500).json({ success: false, message: '批次結清失敗，請稍後再試' });
+    } finally {
+        client.release();
+    }
+});
+
 // 7. 管理員刪除帳目 API
 app.delete('/api/accounts/:id', async (req, res) => {
     const { id } = req.params;

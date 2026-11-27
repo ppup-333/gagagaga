@@ -385,7 +385,266 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 6px;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .hide-settled-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #4a5568;
+            cursor: pointer;
+            user-select: none;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 0;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .hide-settled-label:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+        }
+        .hide-settled-label input {
+            cursor: pointer;
+            width: 15px;
+            height: 15px;
+            margin: 0;
+        }
+
+        /* 細項選取勾選框與批次結清操作列 */
+        .item-select-wrap {
+            display: flex;
+            align-items: flex-start;
+            padding-top: 3px;
+        }
+        .item-select-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            margin: 0;
+            accent-color: #3182ce;
+        }
+        .item-select-checkbox:disabled {
+            cursor: not-allowed;
+            opacity: 0.4;
+        }
+        .item-card.selected-for-settle {
+            border-color: #63b3ed;
+            background: #ebf8ff;
+            box-shadow: 0 2px 6px rgba(49, 130, 206, 0.14);
+        }
+        .batch-settle-bar {
+            position: sticky;
+            top: 8px;
+            z-index: 40;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: #ebf8ff;
+            border: 1.5px solid #90cdf4;
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(49, 130, 206, 0.15);
+        }
+        .batch-settle-info {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c5282;
+        }
+        .batch-settle-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .batch-clear-btn {
+            background: #ffffff;
+            color: #4a5568;
+            border: 1px solid #cbd5e0;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .batch-clear-btn:hover {
+            background: #edf2f7;
+        }
+        .batch-settle-btn {
+            background: #38a169;
+            color: #ffffff;
+            border: none;
+            padding: 7px 18px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            box-shadow: 0 2px 4px rgba(56, 161, 105, 0.25);
+        }
+        .batch-settle-btn:hover {
+            background: #2f855a;
+        }
+        .batch-settle-btn:active {
+            transform: translateY(1px);
+        }
+
+        /* 結清確認視窗 */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(26, 32, 44, 0.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 1000;
+        }
+        .modal-dialog {
+            background: #ffffff;
+            width: 100%;
+            max-width: 520px;
+            max-height: 85vh;
+            border-radius: 14px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #edf2f7;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f7fafc;
+        }
+        .modal-header h3 {
+            margin: 0;
+            font-size: 18px;
+            color: #1a202c;
+        }
+        .modal-close-btn {
+            background: transparent;
+            border: none;
+            font-size: 20px;
+            line-height: 1;
+            color: #718096;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 6px;
+        }
+        .modal-close-btn:hover {
+            background: #edf2f7;
+            color: #2d3748;
+        }
+        .modal-body {
+            padding: 16px 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .modal-desc {
+            margin: 0 0 12px 0;
+            font-size: 14px;
+            color: #4a5568;
+        }
+        .modal-item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .modal-item-card {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+        .modal-item-main {
+            font-size: 14.5px;
+            color: #2d3748;
+            margin-bottom: 4px;
+            line-height: 1.5;
+        }
+        .modal-item-note {
+            font-size: 13.5px;
+            color: #4a5568;
+            margin-bottom: 4px;
+        }
+        .modal-item-meta {
+            font-size: 12px;
+            color: #a0aec0;
+        }
+        .modal-summary-box {
+            background: #f0fff4;
+            border: 1.5px solid #9ae6b4;
+            border-radius: 10px;
+            padding: 12px 14px;
+        }
+        .modal-summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 15px;
+            color: #276749;
+            font-weight: 700;
+        }
+        .modal-total-amount {
+            font-size: 20px;
+            color: #c53030;
+            font-weight: 800;
+        }
+        .modal-summary-sub {
+            margin-top: 6px;
+            font-size: 12.5px;
+            color: #2f855a;
+            line-height: 1.5;
+        }
+        .modal-footer {
+            padding: 14px 20px;
+            border-top: 1px solid #edf2f7;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            background: #f7fafc;
+        }
+        .modal-btn-cancel {
+            background: #ffffff;
+            color: #4a5568;
+            border: 1px solid #cbd5e0;
+            padding: 9px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .modal-btn-cancel:hover:not(:disabled) {
+            background: #edf2f7;
+        }
+        .modal-btn-confirm {
+            background: #38a169;
+            color: #ffffff;
+            border: none;
+            padding: 9px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .modal-btn-confirm:hover:not(:disabled) {
+            background: #2f855a;
+        }
+        .modal-btn-confirm:disabled, .modal-btn-cancel:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
         .tabs-container {
             display: flex;
@@ -601,6 +860,10 @@
         
         <div class="accounts-header">
             <h3 style="margin: 0; color: #2d3748; font-size: 17px;">帳目列表</h3>
+            <label id="hide-settled-label" class="hide-settled-label hidden" title="勾選後不顯示已結清的細項">
+                <input type="checkbox" id="hide-settled-checkbox" onchange="onHideSettledChange()">
+                隱藏「已結清」項目
+            </label>
         </div>
 
         <!-- 成員切換頁籤（包含全部與各成員） -->
@@ -636,7 +899,35 @@
             </div>
         </div>
 
+        <!-- 批次結清操作列（一般成員勾選項目後顯示） -->
+        <div id="batch-settle-bar" class="batch-settle-bar hidden">
+            <span id="batch-settle-info" class="batch-settle-info">已勾選 0 筆項目</span>
+            <div class="batch-settle-actions">
+                <button type="button" class="batch-clear-btn" onclick="clearBatchSelection()">取消選取</button>
+                <button type="button" id="batch-settle-btn" class="batch-settle-btn" onclick="openSettleConfirmModal()">結清</button>
+            </div>
+        </div>
+
         <div id="accounts-list">載入中...</div>
+    </div>
+</div>
+
+<!-- 批次結清確認視窗 -->
+<div id="settle-confirm-modal" class="modal-backdrop hidden" onclick="onModalBackdropClick(event)">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="settle-modal-title">
+        <div class="modal-header">
+            <h3 id="settle-modal-title">確認結清帳目</h3>
+            <button type="button" class="modal-close-btn" onclick="closeSettleConfirmModal()" aria-label="關閉">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="modal-desc">請確認以下勾選項目的詳細資料與總金額：</p>
+            <div id="settle-modal-items" class="modal-item-list"></div>
+            <div id="settle-modal-summary" class="modal-summary-box"></div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="modal-cancel-btn" class="modal-btn-cancel" onclick="closeSettleConfirmModal()">取消</button>
+            <button type="button" id="modal-confirm-settle-btn" class="modal-btn-confirm" onclick="confirmBatchSettle()">確認結清</button>
+        </div>
     </div>
 </div>
 
@@ -649,6 +940,15 @@
     let rawAccountsData = [];
     let currentSelectedTab = 'ALL';
     let isSummaryExpanded = false;
+    let hideSettled = false;
+    let selectedAccountIds = new Set();
+    let isBatchSettling = false;
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeSettleConfirmModal();
+        }
+    });
 
     window.onload = async () => {
         await fetchRooms();
@@ -776,7 +1076,14 @@
         isAdmin = false;
         currentSelectedTab = 'ALL';
         isSummaryExpanded = false;
+        hideSettled = false;
+        selectedAccountIds.clear();
         rawAccountsData = [];
+
+        const hideCheckbox = document.getElementById('hide-settled-checkbox');
+        if (hideCheckbox) hideCheckbox.checked = false;
+        closeSettleConfirmModal(true);
+        updateBatchSettleBar();
 
         document.getElementById('app-section').classList.add('hidden');
         document.getElementById('login-section').classList.remove('hidden');
@@ -795,18 +1102,26 @@
         const adminBadge = document.getElementById('admin-badge-indicator');
         const adminPanel = document.getElementById('admin-panel');
         const addSection = document.getElementById('add-account-section');
+        const hideSettledLabel = document.getElementById('hide-settled-label');
+        const hideCheckbox = document.getElementById('hide-settled-checkbox');
 
         if (isAdmin) {
             adminBadge.classList.remove('hidden');
             adminPanel.classList.remove('hidden');
             addSection.classList.add('hidden'); // 管理員隱藏新增帳目表單
+            if (hideSettledLabel) hideSettledLabel.classList.add('hidden');
+            hideSettled = false;
+            if (hideCheckbox) hideCheckbox.checked = false;
+            selectedAccountIds.clear();
             fetchRefreshStatus();
         } else {
             adminBadge.classList.add('hidden');
             adminPanel.classList.add('hidden');
             addSection.classList.remove('hidden');
+            if (hideSettledLabel) hideSettledLabel.classList.remove('hidden');
         }
 
+        updateBatchSettleBar();
         updateFormMemberSelectors();
         loadAccounts();
     }
@@ -1047,6 +1362,173 @@
         `;
     }
 
+    function onHideSettledChange() {
+        const hideCheckbox = document.getElementById('hide-settled-checkbox');
+        hideSettled = Boolean(hideCheckbox && hideCheckbox.checked);
+        renderFilteredAccounts();
+    }
+
+    function toggleSelectAccount(id, checked) {
+        if (isAdmin) return;
+        const key = String(id);
+        if (checked) {
+            selectedAccountIds.add(key);
+        } else {
+            selectedAccountIds.delete(key);
+        }
+        renderFilteredAccounts();
+    }
+
+    function clearBatchSelection() {
+        selectedAccountIds.clear();
+        renderFilteredAccounts();
+    }
+
+    function updateBatchSettleBar() {
+        const bar = document.getElementById('batch-settle-bar');
+        const info = document.getElementById('batch-settle-info');
+        if (!bar || !info) return;
+
+        if (isAdmin || selectedAccountIds.size === 0) {
+            bar.classList.add('hidden');
+            return;
+        }
+
+        const count = selectedAccountIds.size;
+        info.innerText = `已勾選 ${count} 筆項目`;
+        bar.classList.remove('hidden');
+    }
+
+    function getSelectedSettleItems() {
+        return rawAccountsData.filter(item => {
+            const idStr = String(item.id);
+            if (!selectedAccountIds.has(idStr) || item.settled) return false;
+            const from = item.fromUser || item.user;
+            const to = item.toUser || '';
+            return currentUser === from || currentUser === to;
+        });
+    }
+
+    function openSettleConfirmModal() {
+        if (isAdmin) return;
+        const selectedItems = getSelectedSettleItems();
+        if (selectedItems.length === 0) {
+            alert('請先勾選至少一筆尚未結清的帳目！');
+            return;
+        }
+
+        const modal = document.getElementById('settle-confirm-modal');
+        const itemsContainer = document.getElementById('settle-modal-items');
+        const summaryContainer = document.getElementById('settle-modal-summary');
+        if (!modal || !itemsContainer || !summaryContainer) return;
+
+        let totalAmount = 0;
+        let outSum = 0;
+        let inSum = 0;
+
+        itemsContainer.innerHTML = selectedItems.map(item => {
+            const from = item.fromUser || item.user;
+            const to = item.toUser || '';
+            const amount = Number(item.amount) || 0;
+            const noteText = item.note || '無備註';
+            totalAmount += amount;
+            if (from === currentUser) outSum += amount;
+            if (to === currentUser) inSum += amount;
+
+            const mainLine = to
+                ? `<span class="user-tag">${escapeHtml(from)}</span> 要給 <span class="user-tag">${escapeHtml(to)}</span> <span class="amount-tag">${amount.toLocaleString()}</span> 元`
+                : `<span class="user-tag">${escapeHtml(from)}</span> 記了一筆 <span class="amount-tag">$${amount.toLocaleString()}</span>`;
+
+            return `
+                <div class="modal-item-card">
+                    <div class="modal-item-main">${mainLine}</div>
+                    <div class="modal-item-note">項目：<span class="note-tag">🏷️ ${escapeHtml(noteText)}</span></div>
+                    <div class="modal-item-meta">記錄者：${escapeHtml(item.user)} ｜ ${escapeHtml(item.time)}</div>
+                </div>
+            `;
+        }).join('');
+
+        let subSummaryHtml = '';
+        if (outSum > 0 && inSum > 0) {
+            const net = inSum - outSum;
+            const netText = net > 0
+                ? `實收 +$${net.toLocaleString()} 元`
+                : net < 0
+                    ? `實付 -$${Math.abs(net).toLocaleString()} 元`
+                    : '$0 元（收支相抵）';
+            subSummaryHtml = `<div class="modal-summary-sub">明細統計：您應付 $${outSum.toLocaleString()} 元、應收 $${inSum.toLocaleString()} 元（${netText}）</div>`;
+        }
+
+        summaryContainer.innerHTML = `
+            <div class="modal-summary-row">
+                <span>共 ${selectedItems.length} 筆項目，總金額</span>
+                <span class="modal-total-amount">${totalAmount.toLocaleString()} 元</span>
+            </div>
+            ${subSummaryHtml}
+        `;
+
+        modal.classList.remove('hidden');
+    }
+
+    function closeSettleConfirmModal(force = false) {
+        if (isBatchSettling && !force) return;
+        const modal = document.getElementById('settle-confirm-modal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    function onModalBackdropClick(event) {
+        if (event.target && event.target.id === 'settle-confirm-modal') {
+            closeSettleConfirmModal();
+        }
+    }
+
+    async function confirmBatchSettle() {
+        if (isAdmin || isBatchSettling) return;
+        const selectedItems = getSelectedSettleItems();
+        if (selectedItems.length === 0) {
+            closeSettleConfirmModal(true);
+            return;
+        }
+
+        const confirmBtn = document.getElementById('modal-confirm-settle-btn');
+        const cancelBtn = document.getElementById('modal-cancel-btn');
+        isBatchSettling = true;
+        if (confirmBtn) {
+            confirmBtn.disabled = true;
+            confirmBtn.innerText = '結清中...';
+        }
+        if (cancelBtn) cancelBtn.disabled = true;
+
+        try {
+            const res = await fetch('/api/accounts/batch-settle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ids: selectedItems.map(item => item.id),
+                    currentUser
+                })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                selectedAccountIds.clear();
+                closeSettleConfirmModal(true);
+                await loadAccounts();
+            } else {
+                alert(data.message || '批次結清失敗');
+            }
+        } catch (err) {
+            alert('批次結清失敗，請檢查網路連線');
+        } finally {
+            isBatchSettling = false;
+            if (confirmBtn) {
+                confirmBtn.disabled = false;
+                confirmBtn.innerText = '確認結清';
+            }
+            if (cancelBtn) cancelBtn.disabled = false;
+        }
+    }
+
     function renderFilteredAccounts() {
         const listDiv = document.getElementById('accounts-list');
         if (!listDiv) return;
@@ -1060,8 +1542,38 @@
             });
         }
 
+        const tabMatchCount = filtered.length;
+        if (!isAdmin && hideSettled) {
+            filtered = filtered.filter(item => !item.settled);
+        }
+
+        // 只保留目前畫面中仍可勾選結清的項目 ID，避免隱藏或已結清項目殘留選取狀態
+        const selectableIds = new Set();
+        if (!isAdmin) {
+            filtered.forEach(item => {
+                const from = item.fromUser || item.user;
+                const to = item.toUser || '';
+                const isRelevant = (currentUser === from || currentUser === to);
+                if (!item.settled && isRelevant) {
+                    selectableIds.add(String(item.id));
+                }
+            });
+        }
+        for (const id of Array.from(selectedAccountIds)) {
+            if (!selectableIds.has(id)) {
+                selectedAccountIds.delete(id);
+            }
+        }
+        updateBatchSettleBar();
+
         if (!Array.isArray(filtered) || filtered.length === 0) {
-            if (currentSelectedTab === 'ALL') {
+            if (!isAdmin && hideSettled && tabMatchCount > 0) {
+                if (currentSelectedTab === 'ALL') {
+                    listDiv.innerHTML = '<p style="text-align:center; color:#a0aec0; padding: 24px 0;">目前沒有未結清的帳目紀錄</p>';
+                } else {
+                    listDiv.innerHTML = `<p style="text-align:center; color:#a0aec0; padding: 24px 0;">與「${escapeHtml(currentSelectedTab)}」相關的帳目皆已結清</p>`;
+                }
+            } else if (currentSelectedTab === 'ALL') {
                 listDiv.innerHTML = '<p style="text-align:center; color:#a0aec0; padding: 24px 0;">此空間目前沒有任何帳目紀錄</p>';
             } else {
                 listDiv.innerHTML = `<p style="text-align:center; color:#a0aec0; padding: 24px 0;">目前沒有與「${escapeHtml(currentSelectedTab)}」相關的帳目紀錄</p>`;
@@ -1073,9 +1585,33 @@
             const from = item.fromUser || item.user;
             const to = item.toUser || '';
             const noteText = item.note || '無備註';
+            const idStr = String(item.id);
             
             // 檢查當前登入者是否為該筆帳目的相關兩位成員之一，或是管理員
             const isRelevant = isAdmin || (currentUser === from || currentUser === to);
+            const canSelectForSettle = !isAdmin && !item.settled && isRelevant;
+            const isSelected = canSelectForSettle && selectedAccountIds.has(idStr);
+
+            let selectCheckboxHtml = '';
+            if (!isAdmin) {
+                let selectTitle = '勾選以加入批次結清';
+                if (item.settled) {
+                    selectTitle = '此項目已結清';
+                } else if (!isRelevant) {
+                    selectTitle = `只有相關的兩位成員（${escapeHtml(from)} 或 ${escapeHtml(to)}）才能勾選結清`;
+                }
+                selectCheckboxHtml = `
+                    <div class="item-select-wrap">
+                        <input type="checkbox"
+                               class="item-select-checkbox"
+                               ${isSelected ? 'checked' : ''}
+                               ${canSelectForSettle ? '' : 'disabled'}
+                               title="${selectTitle}"
+                               aria-label="選取此筆帳目進行結清"
+                               onchange="toggleSelectAccount('${escapeHtml(idStr)}', this.checked)">
+                    </div>
+                `;
+            }
 
             const statementMainHtml = to 
                 ? `<span class="user-tag">${escapeHtml(from)}</span> 要給 <span class="user-tag">${escapeHtml(to)}</span> <span class="amount-tag">${item.amount}</span> 元`
@@ -1094,7 +1630,8 @@
                 : '';
 
             return `
-                <div class="item-card ${item.settled ? 'settled' : ''}">
+                <div class="item-card ${item.settled ? 'settled' : ''} ${isSelected ? 'selected-for-settle' : ''}">
+                    ${selectCheckboxHtml}
                     <div class="item-content">
                         <div class="statement-main">${statementMainHtml}</div>
                         <div class="statement-item-line">
