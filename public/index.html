@@ -584,29 +584,78 @@
             color: #a0aec0;
         }
         .modal-summary-box {
-            background: #f0fff4;
-            border: 1.5px solid #9ae6b4;
+            background: #f7fafc;
+            border: 1.5px solid #cbd5e0;
             border-radius: 10px;
             padding: 12px 14px;
         }
-        .modal-summary-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 15px;
-            color: #276749;
+        .modal-summary-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+        .modal-summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+            text-align: right;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .modal-summary-table th,
+        .modal-summary-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #edf2f7;
+            white-space: nowrap;
+        }
+        .modal-summary-table th:first-child,
+        .modal-summary-table td:first-child {
+            text-align: left;
+        }
+        .modal-summary-table th {
+            background: #edf2f7;
+            color: #4a5568;
+            font-weight: 600;
+            font-size: 12.5px;
+        }
+        .modal-summary-table th.modal-net-col {
+            background: #ebf8ff;
+            color: #2b6cb0;
             font-weight: 700;
         }
-        .modal-total-amount {
-            font-size: 20px;
-            color: #c53030;
-            font-weight: 800;
+        .modal-summary-table td.modal-net-col {
+            background: #f8fbff;
         }
-        .modal-summary-sub {
-            margin-top: 6px;
-            font-size: 12.5px;
-            color: #2f855a;
-            line-height: 1.5;
+        .modal-summary-table tfoot td {
+            font-weight: 700;
+            background: #f7fafc;
+            border-top: 2px solid #cbd5e0;
+            border-bottom: none;
+        }
+        .modal-summary-table tfoot td.modal-net-col {
+            background: #ebf8ff;
+        }
+        .modal-net-pill {
+            display: inline-block;
+            padding: 2px 9px;
+            border-radius: 999px;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.2px;
+        }
+        .modal-net-pill.pos {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        .modal-net-pill.neg {
+            background: #fed7d7;
+            color: #9b2c2c;
+        }
+        .modal-net-pill.zero {
+            background: #edf2f7;
+            color: #4a5568;
         }
         .modal-footer {
             padding: 14px 20px;
@@ -920,7 +969,7 @@
             <button type="button" class="modal-close-btn" onclick="closeSettleConfirmModal()" aria-label="關閉">&times;</button>
         </div>
         <div class="modal-body">
-            <p class="modal-desc">請確認以下勾選項目的詳細資料與總金額：</p>
+            <p class="modal-desc">請確認以下勾選項目的詳細資料與明細統計：</p>
             <div id="settle-modal-items" class="modal-item-list"></div>
             <div id="settle-modal-summary" class="modal-summary-box"></div>
         </div>
@@ -1409,6 +1458,16 @@
         });
     }
 
+    function formatModalNetBadge(net) {
+        if (net > 0) {
+            return `<span class="modal-net-pill pos">+$${net.toLocaleString()}</span>`;
+        }
+        if (net < 0) {
+            return `<span class="modal-net-pill neg">-$${Math.abs(net).toLocaleString()}</span>`;
+        }
+        return '<span class="modal-net-pill zero">$0</span>';
+    }
+
     function openSettleConfirmModal() {
         if (isAdmin) return;
         const selectedItems = getSelectedSettleItems();
@@ -1422,18 +1481,30 @@
         const summaryContainer = document.getElementById('settle-modal-summary');
         if (!modal || !itemsContainer || !summaryContainer) return;
 
-        let totalAmount = 0;
-        let outSum = 0;
-        let inSum = 0;
+        let totalOut = 0;
+        let totalIn = 0;
+        const byCounterparty = new Map();
 
         itemsContainer.innerHTML = selectedItems.map(item => {
             const from = item.fromUser || item.user;
             const to = item.toUser || '';
             const amount = Number(item.amount) || 0;
             const noteText = item.note || '無備註';
-            totalAmount += amount;
-            if (from === currentUser) outSum += amount;
-            if (to === currentUser) inSum += amount;
+
+            const counterparty = (from === currentUser) ? (to || '其他') : from;
+            if (!byCounterparty.has(counterparty)) {
+                byCounterparty.set(counterparty, { out: 0, in: 0 });
+            }
+            const stat = byCounterparty.get(counterparty);
+
+            if (from === currentUser) {
+                stat.out += amount;
+                totalOut += amount;
+            }
+            if (to === currentUser) {
+                stat.in += amount;
+                totalIn += amount;
+            }
 
             const mainLine = to
                 ? `<span class="user-tag">${escapeHtml(from)}</span> 要給 <span class="user-tag">${escapeHtml(to)}</span> <span class="amount-tag">${amount.toLocaleString()}</span> 元`
@@ -1448,23 +1519,60 @@
             `;
         }).join('');
 
-        let subSummaryHtml = '';
-        if (outSum > 0 && inSum > 0) {
-            const net = inSum - outSum;
-            const netText = net > 0
-                ? `實收 +$${net.toLocaleString()} 元`
-                : net < 0
-                    ? `實付 -$${Math.abs(net).toLocaleString()} 元`
-                    : '$0 元（收支相抵）';
-            subSummaryHtml = `<div class="modal-summary-sub">明細統計：您應付 $${outSum.toLocaleString()} 元、應收 $${inSum.toLocaleString()} 元（${netText}）</div>`;
-        }
+        const room = roomsData.find(r => r.id === currentRoomId);
+        const memberOrder = (room && Array.isArray(room.members)) ? room.members : [];
+        const counterparties = Array.from(byCounterparty.keys()).sort((a, b) => {
+            const idxA = memberOrder.indexOf(a);
+            const idxB = memberOrder.indexOf(b);
+            if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+            if (idxA !== -1) return -1;
+            if (idxB !== -1) return 1;
+            return a.localeCompare(b, 'zh-Hant');
+        });
+
+        const rowsHtml = counterparties.map(name => {
+            const { out, in: incoming } = byCounterparty.get(name);
+            const net = incoming - out;
+            return `
+                <tr>
+                    <td><strong>${escapeHtml(name)}</strong></td>
+                    <td>$${out.toLocaleString()}</td>
+                    <td>$${incoming.toLocaleString()}</td>
+                    <td class="modal-net-col">${formatModalNetBadge(net)}</td>
+                </tr>
+            `;
+        }).join('');
+
+        const totalNet = totalIn - totalOut;
+        const footHtml = counterparties.length > 1
+            ? `
+                <tfoot>
+                    <tr>
+                        <td>合計</td>
+                        <td>$${totalOut.toLocaleString()}</td>
+                        <td>$${totalIn.toLocaleString()}</td>
+                        <td class="modal-net-col">${formatModalNetBadge(totalNet)}</td>
+                    </tr>
+                </tfoot>
+            `
+            : '';
 
         summaryContainer.innerHTML = `
-            <div class="modal-summary-row">
-                <span>共 ${selectedItems.length} 筆項目，總金額</span>
-                <span class="modal-total-amount">${totalAmount.toLocaleString()} 元</span>
+            <div class="modal-summary-title">📊 明細統計（共 ${selectedItems.length} 筆項目）</div>
+            <div class="table-responsive">
+                <table class="modal-summary-table">
+                    <thead>
+                        <tr>
+                            <th>對象</th>
+                            <th>應付</th>
+                            <th>應收</th>
+                            <th class="modal-net-col">實收</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rowsHtml}</tbody>
+                    ${footHtml}
+                </table>
             </div>
-            ${subSummaryHtml}
         `;
 
         modal.classList.remove('hidden');
